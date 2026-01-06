@@ -7,6 +7,11 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Map Dependency @Atul Prakash -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
@@ -210,9 +215,12 @@
                         <canvas id="signature-pad"></canvas>
                     </div>
 
-                    <div class="verification-data">
-                        <span><i class="fa-solid fa-location-arrow"></i> <span id="loc">Locating...</span></span>
-                        <span><i class="fa-solid fa-cloud"></i> <span id="weath">--°C</span></span>
+                    <div class="verification-data" style="display: block;">
+                        <div id="mini-map" style="height: 150px; width: 100%; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border);"></div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><i class="fa-solid fa-location-arrow"></i> <span id="loc">Locating...</span></span>
+                            <span><i class="fa-solid fa-cloud"></i> <span id="weath">--°C</span></span>
+                        </div>
                     </div>
 
                     <button class="action-btn" id="submit-btn" style="background: var(--success); margin-top: 15px;">
@@ -276,7 +284,18 @@
         } catch (e) { alert("Camera error: " + e.message); }
 
         navigator.geolocation.getCurrentPosition(p => {
-            document.getElementById('loc').innerText = p.coords.latitude.toFixed(2) + ", " + p.coords.longitude.toFixed(2);
+            const lat = p.coords.latitude;
+            const lng = p.coords.longitude;
+            
+            if (!window.attMap) {
+                window.attMap = L.map('mini-map').setView([lat, lng], 15);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.attMap);
+                L.marker([lat, lng]).addTo(window.attMap);
+            } else {
+                window.attMap.setView([lat, lng], 15);
+            }
+            
+            document.getElementById('loc').innerHTML = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
             document.getElementById('weath').innerText = "22°C Clear";
         });
 
